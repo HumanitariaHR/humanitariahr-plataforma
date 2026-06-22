@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>HumanitariaHR — Prototipo</title>
+<style>
+  :root{
+    --azul:#2f6fb8;
+    --azul-claro:#7a3fc4;
+    --azul-suave:#f1edfb;
+    --gradiente: linear-gradient(135deg, #2f8fd1, #9b3fc4);
+    --gris:#6b7280;
+    --gris-claro:#f6f5fa;
+    --borde:#e6e2f0;
+    --blanco:#ffffff;
+    --verde:#1f8a5b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:var(--gris-claro);
+    color:#1d2330;
+  }
+  .app{max-width:1100px;margin:0 auto;min-height:100vh;background:var(--blanco);}
+
+  /* Header */
+  header{
+    background:var(--azul);
+    color:white;
+    padding:18px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.2rem;letter-spacing:.3px;}
+  .logo span.dot{color:#7fb8ff;}
+  nav{display:flex;gap:6px;}
+  nav button{
+    background:transparent;border:none;color:#cfe0fa;
+    padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.92rem;
+  }
+  nav button.active{background:rgba(255,255,255,.15);color:white;font-weight:600;}
+
+  /* Layout */
+  main{padding:26px 28px 60px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .intro{margin-bottom:22px;}
+  .intro h1{font-size:1.4rem;margin:0 0 4px;color:var(--azul);}
+  .intro p{color:var(--gris);margin:0;font-size:.92rem;}
+
+  /* Chat */
+  .chat-shell{
+    border:1px solid var(--borde);
+    border-radius:14px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    height:520px;
+  }
+  .chat-log{flex:1;overflow-y:auto;padding:20px;background:var(--gris-claro);}
+  .msg{max-width:78%;margin-bottom:14px;padding:12px 16px;border-radius:12px;font-size:.93rem;line-height:1.5;}
+  .msg.bot{background:white;border:1px solid var(--borde);color:#1d2330;}
+  .msg.user{background:var(--azul);color:white;margin-left:auto;}
+  .msg.bot .fuente{
+    display:block;margin-top:8px;font-size:.78rem;color:var(--gris);
+    border-top:1px dashed var(--borde);padding-top:6px;
+  }
+  .quick-row{display:flex;gap:8px;flex-wrap:wrap;padding:12px 20px;border-top:1px solid var(--borde);background:white;}
+  .quick{
+    background:var(--azul-suave);color:var(--azul-claro);border:none;border-radius:20px;
+    padding:7px 13px;font-size:.82rem;cursor:pointer;
+  }
+  .chat-input{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--borde);background:white;}
+  .chat-input input{
+    flex:1;border:1px solid var(--borde);border-radius:10px;padding:11px 14px;font-size:.92rem;outline:none;
+  }
+  .chat-input input:focus{border-color:var(--azul-claro);}
+  .chat-input button{
+    background:var(--azul);color:white;border:none;border-radius:10px;padding:0 20px;cursor:pointer;font-weight:600;
+  }
+  .disclaimer{font-size:.78rem;color:var(--gris);margin-top:10px;}
+
+  /* Documentos */
+  .doc-grid{display:flex;gap:24px;}
+  .doc-list{width:260px;flex-shrink:0;}
+  .doc-item{
+    border:1px solid var(--borde);border-radius:10px;padding:13px 14px;margin-bottom:10px;cursor:pointer;font-size:.9rem;
+  }
+  .doc-item.selected{border-color:var(--azul-claro);background:var(--azul-suave);font-weight:600;color:var(--azul);}
+  .doc-form{flex:1;border:1px solid var(--borde);border-radius:12px;padding:22px;}
+  .doc-form h3{margin:0 0 16px;color:var(--azul);font-size:1.05rem;}
+  .prov-card{border:1px solid var(--borde);border-radius:12px;padding:18px;background:white;}
+  .prov-card h4{margin:0 0 4px;color:var(--azul);font-size:1.02rem;}
+  .prov-card .cat{display:inline-block;background:var(--azul-suave);color:var(--azul-claro);font-size:.74rem;padding:3px 9px;border-radius:12px;margin-bottom:8px;}
+  .prov-card p{font-size:.86rem;color:#444;margin:6px 0;}
+  .prov-card .ubicacion{font-size:.78rem;color:var(--gris);}
+  .prov-card .btn-presupuesto{margin-top:10px;width:100%;background:var(--verde);color:white;border:none;border-radius:8px;padding:9px;font-size:.85rem;cursor:pointer;font-weight:600;}
+
+  .contenido-con-sidebar{display:flex;gap:20px;align-items:flex-start;}
+  .columna-principal{flex:1;min-width:0;}
+  .sidebar-proveedores{width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;}
+  @media (max-width: 900px){
+    .contenido-con-sidebar{flex-direction:column;}
+    .sidebar-proveedores{width:100%;flex-direction:row;flex-wrap:wrap;}
+  }
+  .prov-mini{border:1px solid var(--borde);border-radius:10px;overflow:hidden;background:white;font-size:.8rem;}
+  .prov-mini img{width:100%;height:90px;object-fit:cover;display:block;background:var(--gris-claro);}
+  .prov-mini .prov-mini-body{padding:10px;}
+  .prov-mini .cat-mini{font-size:.68rem;color:var(--azul-claro);text-transform:uppercase;font-weight:600;}
+  .prov-mini h5{margin:4px 0;font-size:.85rem;color:var(--azul);}
+  .prov-mini button{width:100%;margin-top:6px;background:var(--verde);color:white;border:none;border-radius:6px;padding:6px;font-size:.74rem;cursor:pointer;}
+  .sidebar-label{font-size:.72rem;color:var(--gris);text-transform:uppercase;letter-spacing:.5px;}
+
+  .feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;}
+  .feature-card{
+    background:white;border:1px solid var(--borde);border-radius:16px;padding:24px 20px;cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .feature-card:hover{transform:translateY(-4px);box-shadow:0 10px 24px rgba(27,58,107,.12);border-color:var(--azul-claro);}
+  .feature-icon{
+    width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(135deg, #2f8fd1, #9b3fc4);
+    display:flex;align-items:center;justify-content:center;margin-bottom:14px;
+  }
+  .feature-icon svg{width:26px;height:26px;}
+  .feature-card h4{margin:0 0 6px;color:var(--azul);font-size:1rem;}
+  .feature-card p{margin:0;font-size:.84rem;color:var(--gris);line-height:1.45;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:.82rem;color:var(--gris);margin-bottom:5px;}
+  .field input,.field textarea{
+    width:100%;border:1px solid var(--borde);border-radius:8px;padding:9px 11px;font-size:.9rem;font-family:inherit;
+  }
+  .btn-gen{
+    background:var(--verde);color:white;border:none;border-radius:8px;padding:11px 20px;font-weight:600;cursor:pointer;margin-top:6px;
+  }
+  .preview{
+    margin-top:20px;background:var(--gris-claro);border:1px dashed var(--borde);border-radius:10px;
+    padding:18px;font-size:.88rem;line-height:1.6;white-space:pre-wrap;display:none;
+  }
+  .preview.show{display:block;}
+  .preview-actions{margin-top:12px;display:flex;gap:10px;}
+  .preview-actions button{
+    background:white;border:1px solid var(--borde);border-radius:8px;padding:8px 14px;font-size:.82rem;cursor:pointer;
+  }
+
+  footer{text-align:center;padding:18px;font-size:.78rem;color:var(--gris);border-top:1px solid var(--borde);}
+</style>
+</head>
+<body>
+<div id="gateEmpresa" style="position:fixed;inset:0;background:rgba(15,30,60,.55);display:none;align-items:center;justify-content:center;z-index:9999;">
+  <div style="background:white;border-radius:14px;padding:36px;max-width:380px;width:90%;position:relative;">
+    <button onclick="cerrarModalLogin()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--gris);">✕</button>
+    <h2 style="color:var(--azul);margin:0 0 6px;">Humanitaria<span style="color:var(--azul-claro);">HR</span></h2>
+    <p style="color:var(--gris);font-size:.88rem;margin:0 0 20px;">Ingresá o creá tu cuenta. Tus documentos y políticas son privados, nadie más los ve.</p>
+    <div class="field"><label>Tipo de cuenta (solo para registro nuevo)</label>
+      <select id="emp_rol" style="width:100%;border:1px solid var(--borde);border-radius:8px;padding:9px 11px;font-size:.9rem;">
+        <option value="empresa">Empresa / RRHH (uso de la plataforma)</option>
+        <option value="proveedor">Proveedor (quiero publicarme en el marketplace)</option>
+      </select>
+    </div>
+    <div class="field"><label>Email</label><input id="emp_email" type="email" placeholder="tu@email.com"></div>
+    <div class="field"><label>Contraseña</label><input id="emp_password" type="password" placeholder="Mínimo 6 caracteres"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-gen" onclick="empresaLogin()">Ingresar</button>
+      <button class="btn-gen" style="background:var(--azul-claro);" onclick="empresaRegistro()">Crear cuenta</button>
+    </div>
+    <p id="empLoginMsg" style="font-size:.82rem;margin-top:10px;"></p>
+  </div>
+</div>
+
+<div class="app" id="appPrincipal">
+  <header>
+    <div class="logo">Humanitaria<span class="dot">HR</span></div>
+    <nav>
+      <button class="active" data-tab="inicio">Inicio</button>
+      <button data-tab="chat">Asistente Laboral</button>
+      <button data-tab="docs">Generador de Documentos</button>
+      <button data-tab="historial">Historial</button>
+      <button data-tab="proveedores">Proveedores</button>
+      <button data-tab="miperfil">Mi Perfil (Proveedores)</button>
+      <button data-tab="base">Base Legal</button>
+      <button data-tab="admin" style="opacity:.6;">⚙ Admin</button>
+      <button id="btnCuenta" onclick="abrirModalLogin()" style="background:var(--verde);border-radius:20px;padding:6px 16px;">Ingresar / Crear cuenta</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- PANEL INICIO -->
+    <section class="panel active" id="panel-inicio">
+      <div class="intro">
+        <h1>Tu aliado en Recursos Humanos, siempre a un mensaje de distancia</h1>
+        <p>Consultá, resolvé y conectá. Sin vueltas, sin letra chica, sin necesidad de ser experto en leyes.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:30px;">
+        <div style="border:1px solid var(--borde);border-radius:12px;padding:24px;">
+          <h3 style="color:var(--azul);margin-top:0;">¿Sos de RRHH o tenés una empresa?</h3>
+          <p style="font-size:.9rem;color:#444;">Consultá al Asistente Laboral con IA sin necesidad de crear cuenta. Cuando quieras generar documentos, ver tu historial o cargar tu propia base legal, vas a necesitar una cuenta gratuita.</p>
+          <button class="btn-gen" onclick="document.querySelector('nav button[data-tab=chat]').click()">Probar el Asistente Laboral</button>
+        </div>
+        <div style="border:1px solid var(--borde);border-radius:12px;padding:24px;">
+          <h3 style="color:var(--azul);margin-top:0;">¿Sos proveedor de servicios para RRHH?</h3>
+          <p style="font-size:.9rem;color:#444;">Catering, capacitación, ART, medicina laboral, software, consultoras y más. Publicate gratis por tiempo limitado y aparecé frente a cientos de empresas.</p>
+          <button class="btn-gen" style="background:var(--gradiente);" onclick="document.querySelector('nav button[data-tab=proveedores]').click()">Ver el Marketplace</button>
+        </div>
+      </div>
+
+      <div class="intro">
+        <h1 style="font-size:1.2rem;">Lo que te espera adentro</h1>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card" onclick="document.querySelector('nav button[data-tab=chat]').click()">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="4" fill="white"/><circle cx="16" cy="14" r="3" fill="white" opacity=".75"/></svg></div>
+          <h4>Preguntá sin miedo a quedar mal</h4>
+          <p>Esa duda laboral que no le querés hacer a nadie, hacésela acá.</p>
+        </div>
+        <div class="feature-card" onclick="document.querySelector('nav button[data-tab=docs]').click()">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="4" fill="white" opacity=".9"/><circle cx="12" cy="13" r="2.4" fill="#9b3fc4"/></svg></div>
+          <h4>Papeles en minutos, no en días</h4>
+          <p>De la idea al documento firmable, sin pelearte con un Word en blanco.</p>
+        </div>
+        <div class="feature-card" onclick="document.querySelector('nav button[data-tab=base]').click()">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="5" fill="white" opacity=".9"/><circle cx="15" cy="15" r="5" fill="white" opacity=".55"/></svg></div>
+          <h4>Tu reglamento, a tu manera</h4>
+          <p>Cargá lo que ya sabés de tu empresa y dejá que trabaje para vos.</p>
+        </div>
+        <div class="feature-card" onclick="document.querySelector('nav button[data-tab=proveedores]').click()">
+          <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="9" r="4.2" fill="white" opacity=".9"/><circle cx="16" cy="9" r="4.2" fill="white" opacity=".9"/><rect x="6" y="14" width="12" height="6" rx="3" fill="white" opacity=".55"/></svg></div>
+          <h4>Quien te resuelve la vida, está acá</h4>
+          <p>Catering, capacitaciones, ART y más, a un clic de distancia.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL CHAT -->
+    <section class="panel" id="panel-chat">
+      <div class="intro">
+        <h1>Asistente Laboral con IA</h1>
+        <p>Consultas sobre Ley de Contrato de Trabajo, convenios colectivos, despidos, licencias y más.</p>
+      </div>
+
+      <div class="contenido-con-sidebar">
+        <div class="columna-principal">
+          <div class="chat-shell">
+            <div class="chat-log" id="chatLog">
+              <div class="msg bot">
+                Hola, soy el asistente de HumanitariaHR. Puedo ayudarte con dudas sobre legislación laboral argentina, convenios colectivos y procedimientos de RRHH. ¿Qué necesitás consultar?
+              </div>
+            </div>
+            <div class="quick-row">
+              <button class="quick" data-q="¿Cuántos días de vacaciones corresponden por antigüedad?">Vacaciones por antigüedad</button>
+              <button class="quick" data-q="¿Cómo se calcula una liquidación final por despido sin causa?">Liquidación por despido</button>
+              <button class="quick" data-q="¿Qué dice el convenio de Comercio sobre licencia por maternidad?">Licencia maternidad (Comercio)</button>
+            </div>
+            <div class="chat-input">
+              <input id="chatInput" type="text" placeholder="Escribí tu consulta laboral...">
+              <button onclick="enviarMensaje()">Enviar</button>
+            </div>
+          </div>
+          <p class="disclaimer">Prototipo de demostración — las respuestas son simuladas. En producción, cada respuesta cita ley y artículo vigente con revisión legal periódica.</p>
+        </div>
+        <aside class="sidebar-proveedores" id="sidebar-chat"></aside>
+      </div>
+    </section>
+
+    <!-- PANEL DOCUMENTOS -->
+    <section class="panel" id="panel-docs">
+      <div class="intro">
+        <h1>Generador de Documentos Laborales</h1>
+        <p>Elegí un tipo de documento, completá los datos y generá el borrador.</p>
+      </div>
+
+      <div class="contenido-con-sidebar">
+        <div class="columna-principal">
+          <div class="doc-grid">
+            <div class="doc-list" id="docList">
+              <div class="doc-item selected" data-doc="apercibimiento">Apercibimiento</div>
+              <div class="doc-item" data-doc="suspension">Suspensión</div>
+              <div class="doc-item" data-doc="carta">Carta documento</div>
+              <div class="doc-item" data-doc="descripcion">Descripción de puesto</div>
+              <div class="doc-item" data-doc="contrato">Contrato de trabajo</div>
+              <div class="doc-item" data-doc="confidencialidad">Acuerdo de confidencialidad</div>
+              <div class="doc-item" data-doc="notificacion">Notificación general</div>
+              <div class="doc-item" data-doc="acta">Acta</div>
+              <div class="doc-item" data-doc="evaluacion">Evaluación de desempeño</div>
+            </div>
+
+            <div class="doc-form">
+              <h3 id="formTitle">Apercibimiento</h3>
+              <div id="dynamicFields"></div>
+              <button class="btn-gen" onclick="generarDoc()">Generar documento</button>
+
+              <div class="preview" id="preview"></div>
+              <div class="preview-actions" id="previewActions" style="display:none;">
+                <button onclick="exportarPDF()">Exportar PDF</button>
+                <button onclick="exportarWord()">Exportar Word</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="sidebar-proveedores" id="sidebar-docs"></aside>
+      </div>
+    </section>
+
+    <!-- PANEL HISTORIAL -->
+    <section class="panel" id="panel-historial">
+      <div class="intro">
+        <h1>Historial de Documentos</h1>
+        <p>Documentos generados anteriormente, guardados en la base de datos.</p>
+      </div>
+      <div id="historialLista" style="max-width:700px;">Cargando...</div>
+    </section>
+
+    <!-- PANEL PROVEEDORES -->
+    <section class="panel" id="panel-proveedores">
+      <div class="intro">
+        <h1>Marketplace de Proveedores</h1>
+        <p>Encontrá proveedores para RRHH: catering, capacitación, ART, medicina laboral y más.</p>
+      </div>
+
+      <button class="btn-gen" style="background:var(--gradiente);margin-bottom:18px;" onclick="toggleFormProveedor()">+ Sumar mi empresa como proveedor</button>
+
+      <div id="formProveedor" style="display:none;border:1px solid var(--borde);border-radius:12px;padding:20px;margin-bottom:24px;max-width:500px;">
+        <div class="field"><label>Nombre de la empresa</label><input id="p_nombre" placeholder="Ej: Catering del Sol"></div>
+        <div class="field"><label>Categoría</label>
+          <select id="p_categoria" style="width:100%;border:1px solid var(--borde);border-radius:8px;padding:9px 11px;font-size:.9rem;">
+            <option>Catering</option>
+            <option>Regalos empresariales</option>
+            <option>Uniformes</option>
+            <option>Consultoras</option>
+            <option>Psicólogos laborales</option>
+            <option>Capacitadores</option>
+            <option>Seguridad e Higiene</option>
+            <option>Medicina Laboral</option>
+            <option>ART</option>
+            <option>Eventos corporativos</option>
+            <option>Coaching</option>
+            <option>Software de RRHH</option>
+          </select>
+        </div>
+        <div class="field"><label>Descripción breve</label><textarea id="p_descripcion" rows="2" placeholder="Qué ofrecés..."></textarea></div>
+        <div class="field"><label>WhatsApp (con código de país, sin espacios)</label><input id="p_whatsapp" placeholder="Ej: 5491122334455"></div>
+        <div class="field"><label>Ubicación</label><input id="p_ubicacion" placeholder="Ej: CABA / Zona Norte / Todo el país"></div>
+        <div class="field"><label>Imágenes de productos (hasta 3 links)</label>
+          <input id="p_imagen" placeholder="Link de imagen 1" style="margin-bottom:8px;">
+          <input id="p_imagen2" placeholder="Link de imagen 2 (opcional)" style="margin-bottom:8px;">
+          <input id="p_imagen3" placeholder="Link de imagen 3 (opcional)">
+        </div>
+        <button class="btn-gen" onclick="cargarProveedor()">Publicar mi empresa</button>
+        <p style="font-size:.78rem;color:var(--gris);margin-top:8px;">Tu perfil se publica en plan gratis. Los planes destacado/premium se gestionan aparte.</p>
+      </div>
+
+      <div class="quick-row" style="border:none;padding:0 0 16px;">
+        <button class="quick" onclick="filtrarProveedores('')">Todas</button>
+        <button class="quick" onclick="filtrarProveedores('Catering')">Catering</button>
+        <button class="quick" onclick="filtrarProveedores('Capacitadores')">Capacitadores</button>
+        <button class="quick" onclick="filtrarProveedores('ART')">ART</button>
+        <button class="quick" onclick="filtrarProveedores('Medicina Laboral')">Medicina Laboral</button>
+        <button class="quick" onclick="filtrarProveedores('Software de RRHH')">Software de RRHH</button>
+      </div>
+
+      <div id="listaProveedores" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+        Cargando proveedores...
+      </div>
+      <p style="font-size:.72rem;color:var(--gris);margin-top:20px;">Los perfiles de este espacio son publicados directamente por cada empresa proveedora. HumanitariaHR facilita el contacto entre las partes; la elección y contratación del servicio es responsabilidad de cada usuario.</p>
+    </section>
+
+    <!-- PANEL MI PERFIL (PROVEEDORES) -->
+    <section class="panel" id="panel-miperfil">
+      <div class="intro">
+        <h1>Mi Perfil de Proveedor</h1>
+        <p>Registrate o ingresá para editar tu propio perfil cuando quieras, sin depender de nadie más.</p>
+      </div>
+
+      <div id="provLoginBox" style="max-width:380px;">
+        <div class="field"><label>Email</label><input id="prov_email" type="email" placeholder="tu@empresa.com"></div>
+        <div class="field"><label>Contraseña</label><input id="prov_password" type="password" placeholder="Mínimo 6 caracteres"></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-gen" onclick="proveedorIngresar()">Ingresar</button>
+          <button class="btn-gen" style="background:var(--azul);" onclick="proveedorRegistrar()">Crear cuenta nueva</button>
+        </div>
+        <p id="provLoginError" style="color:#c0392b;font-size:.82rem;margin-top:8px;"></p>
+      </div>
+
+      <div id="provPerfilBox" style="display:none;max-width:500px;">
+        <button onclick="proveedorCerrarSesion()" style="float:right;background:none;border:1px solid var(--borde);border-radius:6px;padding:6px 12px;font-size:.78rem;cursor:pointer;">Cerrar sesión</button>
+        <div class="doc-form">
+          <div class="field"><label>Nombre de la empresa</label><input id="mp_nombre" placeholder="Ej: Catering del Sol"></div>
+          <div class="field"><label>Categoría</label>
+            <select id="mp_categoria" style="width:100%;border:1px solid var(--borde);border-radius:8px;padding:9px 11px;font-size:.9rem;">
+              <option>Catering</option><option>Regalos empresariales</option><option>Uniformes</option>
+              <option>Consultoras</option><option>Psicólogos laborales</option><option>Capacitadores</option>
+              <option>Seguridad e Higiene</option><option>Medicina Laboral</option><option>ART</option>
+              <option>Eventos corporativos</option><option>Coaching</option><option>Software de RRHH</option>
+            </select>
+          </div>
+          <div class="field"><label>Descripción breve</label><textarea id="mp_descripcion" rows="2"></textarea></div>
+          <div class="field"><label>WhatsApp</label><input id="mp_whatsapp" placeholder="Ej: 5491122334455"></div>
+          <div class="field"><label>Ubicación</label><input id="mp_ubicacion"></div>
+          <div class="field"><label>Imagen 1</label><input id="mp_imagen" placeholder="https://..."></div>
+          <div class="field"><label>Imagen 2</label><input id="mp_imagen2" placeholder="https://..."></div>
+          <div class="field"><label>Imagen 3</label><input id="mp_imagen3" placeholder="https://..."></div>
+          <button class="btn-gen" onclick="proveedorGuardarPerfil()">Guardar cambios</button>
+          <p id="provGuardadoMsg" style="color:var(--verde);font-size:.82rem;margin-top:8px;"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL BASE LEGAL -->
+    <section class="panel" id="panel-base">
+      <div class="intro">
+        <h1>Base Legal</h1>
+        <p>Cargá aquí los textos de leyes y convenios. El asistente va a usar este contenido como fuente de respuesta.</p>
+      </div>
+      <button class="btn-gen" style="background:var(--gradiente);margin-bottom:18px;" onclick="prepararManual()">📄 Cargar mi Manual de Políticas Internas</button>
+
+      <div class="doc-form" style="max-width:700px;">
+        <div class="field"><label>Norma o convenio (ej: Ley 20.744, CCT 130/75 Comercio)</label><input id="ley_titulo" placeholder="Nombre de la norma"></div>
+        <div class="field"><label>Texto / artículos relevantes</label><textarea id="ley_texto" rows="8" placeholder="Pegá aquí el texto legal..."></textarea></div>
+        <button class="btn-gen" onclick="cargarLey()">Guardar en la base</button>
+
+        <h3 style="margin-top:26px;">Normas cargadas</h3>
+        <div id="leyLista" style="font-size:.88rem;color:#444;">Todavía no cargaste ninguna norma.</div>
+      </div>
+    </section>
+
+    <!-- PANEL ADMIN -->
+    <section class="panel" id="panel-admin">
+      <div class="intro">
+        <h1>Panel de Administrador</h1>
+        <p>Gestión de proveedores: editar, contactar, activar/desactivar y controlar el período gratuito.</p>
+      </div>
+
+      <div id="adminLogin" style="max-width:360px;">
+        <div class="field"><label>Email de administrador</label><input id="admin_email" type="email" placeholder="tu@email.com"></div>
+        <div class="field"><label>Contraseña</label><input id="admin_clave" type="password" placeholder="Contraseña"></div>
+        <button class="btn-gen" onclick="verificarAdmin()">Ingresar</button>
+        <p id="adminLoginError" style="color:#c0392b;font-size:.82rem;margin-top:8px;"></p>
+      </div>
+
+      <div id="adminPanel" style="display:none;">
+        <button onclick="cerrarSesionAdmin()" style="float:right;background:none;border:1px solid var(--borde);border-radius:6px;padding:6px 12px;font-size:.78rem;cursor:pointer;">Cerrar sesión</button>
+        <div style="background:var(--azul-suave);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:.86rem;">
+          💡 Planes sugeridos (accesibles, para etapa inicial): <strong>Destacado $10.000/mes</strong> · <strong>Premium $20.000/mes</strong>. Ajustá estos valores según tu mercado.
+        </div>
+        <div id="listaAdminProveedores"></div>
+      </div>
+    </section>
+    <!-- PANEL TERMINOS -->
+    <section class="panel" id="panel-terminos" style="max-width:780px;">
+      <div class="intro"><h1>Términos y Condiciones</h1><p>Última actualización: junio 2026</p></div>
+      <div style="font-size:.88rem;color:#333;line-height:1.7;">
+        <h3>1. Sobre la plataforma</h3>
+        <p>HumanitariaHR es una plataforma de software que ofrece asistencia informativa sobre legislación laboral argentina, generación de documentos de recursos humanos y un espacio de contacto entre empresas y proveedores de servicios. El uso de la plataforma implica la aceptación de estos términos.</p>
+
+        <h3>2. El Asistente Laboral con IA no es asesoramiento legal</h3>
+        <p>Las respuestas del Asistente Laboral se generan mediante inteligencia artificial en base a la información cargada en la plataforma. Pueden contener errores, estar incompletas o desactualizadas. No constituyen asesoramiento legal, contable ni profesional de ningún tipo, y no reemplazan la consulta con un abogado laboralista, contador o profesional matriculado. HumanitariaHR no garantiza la exactitud, vigencia ni aplicabilidad de las respuestas a un caso particular.</p>
+
+        <h3>3. Generador de Documentos</h3>
+        <p>Los documentos generados por la plataforma (apercibimientos, contratos, notificaciones, etc.) son borradores orientativos basados en plantillas y/o inteligencia artificial. Es responsabilidad exclusiva del usuario revisar, adaptar y validar cada documento antes de utilizarlo, idealmente con asesoramiento profesional, antes de darle efecto legal.</p>
+
+        <h3>4. Cuentas de usuario</h3>
+        <p>Existen tres tipos de cuenta: Empresa/RRHH, Proveedor y Administrador. Cada cuenta accede únicamente a las funcionalidades correspondientes a su tipo. El usuario es responsable de la confidencialidad de sus credenciales y de toda actividad realizada desde su cuenta.</p>
+
+        <h3>5. Marketplace de Proveedores</h3>
+        <p>Los perfiles de proveedores son publicados directamente por cada empresa proveedora, sin validación previa por parte de HumanitariaHR. HumanitariaHR no verifica la veracidad de la información publicada, ni se responsabiliza por la calidad, cumplimiento legal o resultado de los servicios contratados a través del espacio. La contratación de cualquier proveedor es responsabilidad exclusiva del usuario que decide contactarlo.</p>
+
+        <h3>6. Planes y pagos</h3>
+        <p>Las funcionalidades básicas de la plataforma pueden ofrecerse de forma gratuita durante el período de lanzamiento. HumanitariaHR podrá introducir planes pagos para proveedores (perfil destacado, perfil premium) y/o para empresas en el futuro, notificando los cambios con razonable anticipación. Los precios vigentes se informan dentro de la plataforma.</p>
+
+        <h3>7. Propiedad intelectual</h3>
+        <p>El software, diseño, marca y contenidos propios de HumanitariaHR son de su titularidad. El contenido cargado por cada usuario (manuales de políticas, datos de proveedores) sigue siendo propiedad de quien lo carga.</p>
+
+        <h3>8. Limitación de responsabilidad</h3>
+        <p>HumanitariaHR no será responsable por daños directos o indirectos derivados del uso de la información generada por el Asistente Laboral, los documentos generados, ni de la relación comercial entre empresas y proveedores contactados a través de la plataforma.</p>
+
+        <h3>9. Modificaciones</h3>
+        <p>HumanitariaHR podrá modificar estos términos en cualquier momento. Los cambios relevantes se comunicarán a través de la plataforma.</p>
+
+        <h3>10. Ley aplicable</h3>
+        <p>Estos términos se rigen por las leyes de la República Argentina. Cualquier controversia se someterá a los tribunales ordinarios competentes.</p>
+
+        <p style="margin-top:24px;color:var(--gris);font-size:.78rem;">Este documento es un borrador inicial y debe ser revisado por un profesional matriculado antes de su uso definitivo en producción.</p>
+      </div>
+    </section>
+
+    <!-- PANEL PRIVACIDAD -->
+    <section class="panel" id="panel-privacidad" style="max-width:780px;">
+      <div class="intro"><h1>Política de Privacidad</h1><p>Última actualización: junio 2026</p></div>
+      <div style="font-size:.88rem;color:#333;line-height:1.7;">
+        <h3>1. Qué datos recopilamos</h3>
+        <p>Recopilamos: email y contraseña (encriptada) al crear una cuenta; datos de perfil de proveedor (nombre, categoría, descripción, WhatsApp, ubicación, imágenes) si te registrás como proveedor; los documentos que generás y las normas/manuales que cargás en la plataforma; y consultas realizadas al Asistente Laboral.</p>
+
+        <h3>2. Cómo usamos tus datos</h3>
+        <p>Usamos tus datos para: brindarte acceso a las funcionalidades de tu cuenta; mostrar tu perfil de proveedor (si elegís publicarte) a otras empresas usuarias de la plataforma; generar respuestas del Asistente Laboral mediante un proveedor externo de inteligencia artificial (Anthropic); y mejorar el funcionamiento del servicio.</p>
+
+        <h3>3. Privacidad entre cuentas</h3>
+        <p>Los documentos generados, el historial y los manuales de políticas internas que cargues son privados: solo tu cuenta puede verlos. Las leyes y convenios colectivos cargados como biblioteca general son de acceso compartido entre todas las cuentas de empresa, ya que se trata de normativa pública. Los perfiles de proveedores son públicos por naturaleza, ya que su finalidad es ser encontrados por empresas interesadas.</p>
+
+        <h3>4. Dónde se almacenan los datos</h3>
+        <p>Los datos se almacenan en servidores de Supabase (infraestructura en la nube) y las consultas al asistente se procesan a través de la API de Anthropic (Claude). Ambos proveedores cuentan con sus propias políticas de seguridad y privacidad.</p>
+
+        <h3>5. Con quién compartimos datos</h3>
+        <p>No vendemos ni compartimos tus datos personales con terceros con fines comerciales. Los datos de contacto de los proveedores (WhatsApp) se muestran públicamente en el marketplace porque es la finalidad de esa función.</p>
+
+        <h3>6. Tus derechos</h3>
+        <p>Podés solicitar la corrección o eliminación de tus datos personales y de tu cuenta en cualquier momento, conforme a la Ley 25.326 de Protección de Datos Personales de la República Argentina. Para ejercer este derecho, contactanos por los medios indicados en la plataforma.</p>
+
+        <h3>7. Seguridad</h3>
+        <p>Implementamos controles de acceso y autenticación para proteger tu cuenta. Ningún sistema es 100% infalible; te recomendamos usar contraseñas seguras y no compartirlas.</p>
+
+        <h3>8. Cambios en esta política</h3>
+        <p>Podemos actualizar esta política periódicamente. Te recomendamos revisarla de vez en cuando.</p>
+
+        <p style="margin-top:24px;color:var(--gris);font-size:.78rem;">Este documento es un borrador inicial y debe ser revisado por un profesional matriculado antes de su uso definitivo en producción.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Prototipo navegable — HumanitariaHR · No usar como documento legal real
+    <span style="margin:0 8px;">·</span>
+    <a href="#" onclick="mostrarPanelSimple('terminos');return false;" style="color:var(--azul-claro);text-decoration:none;">Términos y Condiciones</a>
+    <span style="margin:0 8px;">·</span>
+    <a href="#" onclick="mostrarPanelSimple('privacidad');return false;" style="color:var(--azul-claro);text-decoration:none;">Política de Privacidad</a>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // ====== CONFIGURACIÓN — completar con tus datos reales ======
+  const SUPABASE_URL = "https://mmrmqfwoueeyyfmrbpyq.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_hXcv4gW863ePviTeoHf9dw_eQzLUypb";
+  // ==============================================================
+
+  let db = null;
+  if(SUPABASE_URL.startsWith('http')){
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+
+  let empresaSesion = null; // usuario logueado (empresa, proveedor o admin)
+  let esAdminActual = false;
+  let rolActual = null; // 'empresa' o 'proveedor'
+
+  function mostrarPanelSimple(tab){
+    document.querySelectorAll('nav button[data-tab]').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+tab).classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  function abrirModalLogin(){
+    document.getElementById('gateEmpresa').style.display = 'flex';
+  }
+  function cerrarModalLogin(){
+    document.getElementById('gateEmpresa').style.display = 'none';
+  }
+
+  function actualizarBotonCuenta(){
+    const btn = document.getElementById('btnCuenta');
+    if(empresaSesion){
+      const etiquetaRol = esAdminActual ? '⚙ Admin' : (rolActual === 'proveedor' ? '🏷 Proveedor' : '🏢 Empresa');
+      btn.innerText = `${etiquetaRol} · ${empresaSesion.email} · Salir`;
+      btn.style.background = '#fdeaea';
+      btn.style.color = '#c0392b';
+      btn.onclick = empresaLogout;
+    } else {
+      btn.innerText = 'Ingresar / Crear cuenta';
+      btn.style.background = 'var(--verde)';
+      btn.style.color = 'white';
+      btn.onclick = abrirModalLogin;
+    }
+  }
+
+  // Pestañas exclusivas de cada rol (el admin siempre tiene acceso a todo)
+  const tabsSoloEmpresa = ['docs','historial','base'];
+  const tabsSoloProveedor = ['miperfil'];
+
+  function fijarRolDesdeUsuario(usuario){
+    rolActual = (usuario.user_metadata && usuario.user_metadata.rol) || 'empresa';
+  }
+
+  async function revisarSesionEmpresa(){
+    if(!db) return;
+    const { data } = await db.auth.getSession();
+    if(data && data.session){
+      empresaSesion = data.session.user;
+      fijarRolDesdeUsuario(empresaSesion);
+      const { data: adminData } = await db.from('admins').select('email').eq('email', empresaSesion.email).maybeSingle();
+      esAdminActual = !!adminData;
+      if(typeof cargarLeyesDesdeSupabase === 'function') cargarLeyesDesdeSupabase();
+    }
+    actualizarBotonCuenta();
+  }
+  revisarSesionEmpresa();
+
+  async function empresaRegistro(){
+    const email = document.getElementById('emp_email').value.trim();
+    const password = document.getElementById('emp_password').value;
+    const rol = document.getElementById('emp_rol').value;
+    const msg = document.getElementById('empLoginMsg');
+    if(password.length < 6){ msg.style.color='#c0392b'; msg.innerText='La contraseña debe tener al menos 6 caracteres.'; return; }
+    const { data, error } = await db.auth.signUp({ email, password, options: { data: { rol } } });
+    if(error){ msg.style.color='#c0392b'; msg.innerText = error.message; return; }
+    msg.style.color='var(--verde)';
+    msg.innerText = 'Cuenta creada. Si tu proyecto requiere confirmación por email, revisá tu casilla. Si no, ya podés ingresar.';
+  }
+
+  async function empresaLogin(){
+    const email = document.getElementById('emp_email').value.trim();
+    const password = document.getElementById('emp_password').value;
+    const msg = document.getElementById('empLoginMsg');
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if(error){ msg.style.color='#c0392b'; msg.innerText = 'Email o contraseña incorrectos.'; return; }
+    empresaSesion = data.user;
+    fijarRolDesdeUsuario(empresaSesion);
+    const { data: adminData } = await db.from('admins').select('email').eq('email', empresaSesion.email).maybeSingle();
+    esAdminActual = !!adminData;
+    actualizarBotonCuenta();
+    cerrarModalLogin();
+    if(typeof cargarLeyesDesdeSupabase === 'function') cargarLeyesDesdeSupabase();
+    // Si es proveedor, lo llevamos directo a su panel; si es empresa, al asistente
+    if(rolActual === 'proveedor' && !esAdminActual) document.querySelector('nav button[data-tab=miperfil]').click();
+    else document.querySelector('nav button[data-tab=chat]').click();
+  }
+
+  async function empresaLogout(){
+    if(db) await db.auth.signOut();
+    empresaSesion = null;
+    esAdminActual = false;
+    rolActual = null;
+    actualizarBotonCuenta();
+    document.querySelector('nav button[data-tab=inicio]').click();
+  }
+
+  document.querySelectorAll('nav button[data-tab]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const tab = btn.dataset.tab;
+
+      // El admin tiene acceso a todo; para el resto, se respeta el rol
+      if(!esAdminActual){
+        if(tabsSoloEmpresa.includes(tab)){
+          if(!empresaSesion){ abrirModalLogin(); return; }
+          if(rolActual === 'proveedor'){ alert('Esta sección es exclusiva para cuentas de Empresa/RRHH. Tu cuenta es de Proveedor.'); return; }
+        }
+        if(tabsSoloProveedor.includes(tab)){
+          if(empresaSesion && rolActual === 'empresa'){ alert('Esta sección es exclusiva para cuentas de Proveedor. Tu cuenta es de Empresa/RRHH.'); return; }
+        }
+        if(tab === 'admin'){ abrirModalLogin(); return; }
+      }
+
+      document.querySelectorAll('nav button[data-tab]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      document.getElementById('panel-'+tab).classList.add('active');
+      if(tab === 'historial') cargarHistorial();
+      if(tab === 'proveedores') cargarProveedores();
+      if(tab === 'chat') cargarSidebar('sidebar-chat', ['Consultoras','Capacitadores','Psicólogos laborales']);
+      if(tab === 'docs') cargarSidebar('sidebar-docs', ['Software de RRHH','Consultoras']);
+      if(tab === 'admin' && esAdminActual){
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminPanel').style.display = 'block';
+        adminLogueado = true;
+        cargarAdminProveedores();
+      }
+      if(tab === 'miperfil') revisarSesionProveedor();
+    });
+  });
+
+  // Chat simulado
+  const respuestas = {
+    "vacaciones": {
+      texto: "Según la Ley de Contrato de Trabajo (Ley 20.744), Art. 150, los días de vacaciones se calculan por antigüedad:\n\n• Hasta 5 años: 14 días corridos\n• De 5 a 10 años: 21 días\n• De 10 a 20 años: 28 días\n• Más de 20 años: 35 días\n\nSe cuentan desde el primer día de antigüedad calculado al 31 de diciembre del año en cuestión.",
+      fuente: "Fuente: Ley 20.744, Art. 150 — Infoleg"
+    },
+    "liquidacion": {
+      texto: "Para un despido sin causa, la liquidación final incluye:\n\n• Indemnización por antigüedad (Art. 245 LCT): 1 mes de sueldo por año trabajado o fracción mayor a 3 meses\n• Indemnización sustitutiva de preaviso\n• Integración del mes de despido\n• SAC y vacaciones proporcionales\n• Días trabajados del mes",
+      fuente: "Fuente: Ley 20.744, Art. 245 — Infoleg"
+    },
+    "maternidad": {
+      texto: "El Convenio Colectivo de Comercio (CCT 130/75) sigue el régimen general de la LCT: 90 días corridos de licencia (45 antes y 45 después del parto, con opción de reducir el período previo a 10 días y acumular el resto al postparto).",
+      fuente: "Fuente: Ley 20.744 Art. 177 + CCT 130/75"
+    },
+    "default": {
+      texto: "Esta es una respuesta simulada del prototipo. En la versión completa, el asistente busca en la base legal actualizada (LCT, convenios colectivos y jurisprudencia) y responde citando ley y artículo exacto.",
+      fuente: "Demo — sin fuente real"
+    }
+  };
+
+  function detectar(msg){
+    const msgLower = msg.toLowerCase();
+    // Primero busca en las leyes cargadas por el usuario
+    for(const l of leyes){
+      if(msgLower.includes(l.titulo.toLowerCase().split(' ')[0]) || l.texto.toLowerCase().includes(msgLower.split(' ')[0])){
+        return { texto: l.texto.slice(0,500), fuente: 'Fuente: '+l.titulo+' (cargada en tu Base Legal)' };
+      }
+    }
+    if(msgLower.includes('vacacion')) return respuestas.vacaciones;
+    if(msgLower.includes('liquidaci') || msgLower.includes('despido')) return respuestas.liquidacion;
+    if(msgLower.includes('maternidad') || msgLower.includes('licencia')) return respuestas.maternidad;
+    return respuestas.default;
+  }
+
+  function agregarMensaje(texto,clase,fuente){
+    const log = document.getElementById('chatLog');
+    const div = document.createElement('div');
+    div.className = 'msg '+clase;
+    div.innerText = texto;
+    if(fuente){
+      const f = document.createElement('span');
+      f.className='fuente';
+      f.innerText = fuente;
+      div.appendChild(f);
+    }
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  let historialChat = []; // memoria de la conversación: [{role, content}]
+
+  function seleccionarFuentesRelevantes(consulta){
+    if(leyes.length === 0) return [];
+    const palabrasClave = consulta.toLowerCase()
+      .replace(/[¿?¡!.,;:]/g,'')
+      .split(' ')
+      .filter(p => p.length > 3);
+
+    const puntuadas = leyes.map(l => {
+      const textoCompleto = (l.titulo + ' ' + l.texto).toLowerCase();
+      let puntaje = 0;
+      palabrasClave.forEach(p => { if(textoCompleto.includes(p)) puntaje++; });
+      return { ...l, puntaje };
+    });
+
+    const relevantes = puntuadas.filter(l => l.puntaje > 0).sort((a,b) => b.puntaje - a.puntaje);
+    // Si encontramos coincidencias, mandamos las más relevantes (top 6); si no, mandamos toda la base como respaldo
+    return relevantes.length > 0 ? relevantes.slice(0, 6) : leyes;
+  }
+
+  async function llamarAsistenteIA(baseTexto, consulta){
+    const host = window.location.hostname;
+    const esNetlify = host.includes('netlify.app') || host.includes('humanitariahr.com');
+    const esVercel = host.includes('vercel.app') || host.includes('humanitariahr.ar'); // ajustá si usás otro dominio propio
+    const esProduccion = esNetlify || esVercel;
+
+    if(esProduccion){
+      const ruta = esNetlify ? "/.netlify/functions/asistente" : "/api/asistente";
+      const response = await fetch(ruta, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ baseTexto, consulta })
+      });
+      const data = await response.json();
+      return data.texto || 'No se pudo obtener respuesta.';
+    } else {
+      // Preview de Claude: llamada directa, sin costo para el usuario
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1200,
+          messages: [{
+            role: "user",
+            content: `Sos el Asistente Laboral de HumanitariaHR, especializado en legislación laboral argentina. Respondé SOLO en base a la siguiente base legal cargada por la empresa. Si la consulta no está cubierta por esta base, decilo explícitamente y no inventes.\n\nBASE LEGAL:\n${baseTexto}\n\n${consulta}\n\nRespondé de forma clara, citando artículo si está en la base, y agregá al final una línea "Fuente:" indicando qué norma usaste o si no hay fuente disponible.`
+          }]
+        })
+      });
+      const data = await response.json();
+      return data.content.map(c=>c.text||'').join('\n');
+    }
+  }
+
+  async function enviarMensaje(){
+    const input = document.getElementById('chatInput');
+    const val = input.value.trim();
+    if(!val) return;
+    agregarMensaje(val,'user');
+    input.value='';
+
+    const pensando = document.createElement('div');
+    pensando.className='msg bot';
+    pensando.innerText='Pensando...';
+    document.getElementById('chatLog').appendChild(pensando);
+
+    try{
+      const fuentes = seleccionarFuentesRelevantes(val);
+      const baseTexto = fuentes.map(l=>`### ${l.titulo}\n${l.texto}`).join('\n\n') || 'Sin normas cargadas todavía.';
+
+      // Construimos el contexto de conversación (últimos 6 turnos) para que recuerde lo anterior
+      historialChat.push({ role: 'user', content: val });
+      const contextoPrevio = historialChat.slice(-6).map(h => `${h.role === 'user' ? 'Usuario' : 'Asistente'}: ${h.content}`).join('\n');
+      const consultaConContexto = `${contextoPrevio}\n\n(Respondé al último mensaje del usuario, considerando el contexto previo de la conversación si es relevante.)`;
+
+      const texto = await llamarAsistenteIA(baseTexto, consultaConContexto);
+
+      historialChat.push({ role: 'assistant', content: texto });
+      pensando.remove();
+      agregarMensaje(texto,'bot');
+    }catch(err){
+      pensando.remove();
+      agregarMensaje('Hubo un error al consultar la IA. Revisá la conexión.','bot');
+      console.error(err);
+    }
+  }
+  document.getElementById('chatInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter') enviarMensaje();
+  });
+  document.querySelectorAll('.quick').forEach(q=>{
+    q.addEventListener('click',()=>{
+      document.getElementById('chatInput').value = q.dataset.q;
+      enviarMensaje();
+    });
+  });
+
+  // Documentos
+  // Configuración de campos específicos por cada tipo de documento
+  const camposPorTipo = {
+    apercibimiento: [
+      {id:'nombre', label:'Nombre del empleado', tipo:'text', ph:'Ej: Juan Pérez'},
+      {id:'puesto', label:'Puesto', tipo:'text', ph:'Ej: Operario de depósito'},
+      {id:'antiguedad', label:'Antigüedad', tipo:'text', ph:'Ej: 2 años'},
+      {id:'convenio', label:'Convenio aplicable', tipo:'select'},
+      {id:'fechaHecho', label:'Fecha del hecho', tipo:'date'},
+      {id:'hecho', label:'Descripción detallada del hecho', tipo:'textarea', ph:'Qué pasó, cuándo, dónde, quién lo constató...'},
+      {id:'reincidencia', label:'¿Tuvo sanciones previas?', tipo:'select-simple', opciones:['No','Sí, apercibimiento previo','Sí, suspensión previa']},
+      {id:'fecha', label:'Fecha de notificación', tipo:'date'}
+    ],
+    suspension: [
+      {id:'nombre', label:'Nombre del empleado', tipo:'text', ph:'Ej: Juan Pérez'},
+      {id:'puesto', label:'Puesto', tipo:'text', ph:'Ej: Operario de depósito'},
+      {id:'antiguedad', label:'Antigüedad', tipo:'text', ph:'Ej: 2 años'},
+      {id:'convenio', label:'Convenio aplicable', tipo:'select'},
+      {id:'fechaHecho', label:'Fecha del hecho', tipo:'date'},
+      {id:'hecho', label:'Descripción detallada del hecho', tipo:'textarea', ph:'Qué pasó, antecedentes disciplinarios...'},
+      {id:'dias', label:'Días de suspensión', tipo:'text', ph:'Ej: 3 días'},
+      {id:'fechaInicio', label:'Fecha de inicio de la suspensión', tipo:'date'},
+      {id:'fecha', label:'Fecha de notificación', tipo:'date'}
+    ],
+    carta: [
+      {id:'nombre', label:'Destinatario', tipo:'text', ph:'Nombre completo'},
+      {id:'domicilio', label:'Domicilio del destinatario', tipo:'text', ph:'Calle, número, ciudad'},
+      {id:'tipoCarta', label:'Tipo de carta documento', tipo:'select-simple', opciones:['Despido con causa','Despido sin causa','Intimación','Reclamo / Notificación general']},
+      {id:'hecho', label:'Texto / motivo de la notificación', tipo:'textarea', ph:'Detalle completo del motivo...'},
+      {id:'fecha', label:'Fecha de envío', tipo:'date'}
+    ],
+    descripcion: [
+      {id:'puesto', label:'Nombre del puesto', tipo:'text', ph:'Ej: Analista de RRHH'},
+      {id:'area', label:'Área / Departamento', tipo:'text', ph:'Ej: Recursos Humanos'},
+      {id:'reportaA', label:'Reporta a', tipo:'text', ph:'Ej: Gerente de RRHH'},
+      {id:'objetivo', label:'Objetivo del puesto', tipo:'textarea', ph:'Para qué existe este puesto...'},
+      {id:'responsabilidades', label:'Responsabilidades principales', tipo:'textarea', ph:'Una por línea'},
+      {id:'formacion', label:'Formación requerida', tipo:'text', ph:'Ej: Terciario/Universitario en RRHH'},
+      {id:'experiencia', label:'Experiencia requerida', tipo:'text', ph:'Ej: 2 años en puestos similares'},
+      {id:'competencias', label:'Competencias clave', tipo:'textarea', ph:'Una por línea'}
+    ],
+    contrato: [
+      {id:'nombre', label:'Nombre del empleado', tipo:'text'},
+      {id:'dni', label:'DNI', tipo:'text'},
+      {id:'domicilio', label:'Domicilio del empleado', tipo:'text'},
+      {id:'puesto', label:'Puesto / Categoría', tipo:'text'},
+      {id:'convenio', label:'Convenio aplicable', tipo:'select'},
+      {id:'tipoContrato', label:'Tipo de contrato', tipo:'select-simple', opciones:['Por tiempo indeterminado','Plazo fijo','Eventual','Período de prueba']},
+      {id:'jornada', label:'Jornada / Horario', tipo:'text', ph:'Ej: 9 a 18hs, Lunes a Viernes'},
+      {id:'sueldo', label:'Remuneración', tipo:'text', ph:'Monto y forma de pago'},
+      {id:'fechaInicio', label:'Fecha de inicio', tipo:'date'},
+      {id:'lugarTrabajo', label:'Lugar de trabajo', tipo:'text'}
+    ],
+    confidencialidad: [
+      {id:'nombre', label:'Nombre del empleado', tipo:'text'},
+      {id:'puesto', label:'Puesto', tipo:'text'},
+      {id:'alcance', label:'Información considerada confidencial', tipo:'textarea', ph:'Qué información abarca...'},
+      {id:'duracion', label:'Duración del acuerdo', tipo:'text', ph:'Ej: Vigencia del contrato + 2 años posteriores'},
+      {id:'penalidad', label:'Penalidad por incumplimiento', tipo:'textarea', ph:'Consecuencias del incumplimiento...'},
+      {id:'fecha', label:'Fecha', tipo:'date'}
+    ],
+    notificacion: [
+      {id:'nombre', label:'Destinatario', tipo:'text'},
+      {id:'puesto', label:'Puesto', tipo:'text'},
+      {id:'asunto', label:'Asunto', tipo:'text', ph:'Ej: Cambio de horario'},
+      {id:'hecho', label:'Detalle de la notificación', tipo:'textarea'},
+      {id:'fecha', label:'Fecha', tipo:'date'}
+    ],
+    acta: [
+      {id:'lugar', label:'Lugar', tipo:'text', ph:'Ej: Oficina central, CABA'},
+      {id:'fecha', label:'Fecha', tipo:'date'},
+      {id:'nombre', label:'Empleado/s involucrado/s', tipo:'text'},
+      {id:'puesto', label:'Puesto', tipo:'text'},
+      {id:'asistentes', label:'Testigos / Presentes', tipo:'text', ph:'Nombres y cargos'},
+      {id:'hecho', label:'Hechos / Lo tratado en la reunión', tipo:'textarea'},
+      {id:'conclusion', label:'Acuerdos / Conclusión', tipo:'textarea'}
+    ],
+    evaluacion: [
+      {id:'nombre', label:'Empleado evaluado', tipo:'text'},
+      {id:'puesto', label:'Puesto', tipo:'text'},
+      {id:'periodo', label:'Período evaluado', tipo:'text', ph:'Ej: Enero - Junio 2026'},
+      {id:'evaluador', label:'Evaluador', tipo:'text'},
+      {id:'observaciones', label:'Observaciones generales del desempeño', tipo:'textarea'},
+      {id:'fortalezas', label:'Fortalezas destacadas', tipo:'textarea'},
+      {id:'areasMejora', label:'Áreas de mejora', tipo:'textarea'},
+      {id:'calificacion', label:'Calificación general', tipo:'select-simple', opciones:['Excelente','Muy bueno','Bueno','Necesita mejorar','Insatisfactorio']},
+      {id:'objetivos', label:'Objetivos para el próximo período', tipo:'textarea'},
+      {id:'fecha', label:'Fecha', tipo:'date'}
+    ]
+  };
+
+  const opcionesConvenio = `
+    <option value="">Sin convenio específico (solo LCT)</option>
+    <option value="CCT 130/75 Comercio">CCT 130/75 - Comercio</option>
+    <option value="CCT 260/75 UOM">CCT 260/75 - UOM (Metalúrgicos)</option>
+    <option value="CCT 389/04 Gastronómicos">CCT 389/04 - Gastronómicos</option>
+    <option value="CCT 76/75 UOCRA">CCT 76/75 - UOCRA (Construcción)</option>
+    <option value="CCT 122/75 Sanidad">CCT 122/75 - Sanidad</option>
+  `;
+
+  function renderCampos(tipo){
+    const cont = document.getElementById('dynamicFields');
+    const campos = camposPorTipo[tipo] || [];
+    cont.innerHTML = campos.map(c=>{
+      const inputId = 'f_'+c.id;
+      if(c.tipo==='textarea'){
+        return `<div class="field"><label>${c.label}</label><textarea id="${inputId}" rows="3" placeholder="${c.ph||''}"></textarea></div>`;
+      } else if(c.tipo==='date'){
+        return `<div class="field"><label>${c.label}</label><input id="${inputId}" type="date"></div>`;
+      } else if(c.tipo==='select'){
+        return `<div class="field"><label>${c.label}</label><select id="${inputId}" style="width:100%;border:1px solid var(--borde);border-radius:8px;padding:9px 11px;font-size:.9rem;">${opcionesConvenio}</select></div>`;
+      } else if(c.tipo==='select-simple'){
+        const opts = c.opciones.map(o=>`<option value="${o}">${o}</option>`).join('');
+        return `<div class="field"><label>${c.label}</label><select id="${inputId}" style="width:100%;border:1px solid var(--borde);border-radius:8px;padding:9px 11px;font-size:.9rem;">${opts}</select></div>`;
+      } else {
+        return `<div class="field"><label>${c.label}</label><input id="${inputId}" placeholder="${c.ph||''}"></div>`;
+      }
+    }).join('');
+  }
+
+  function leerCampos(tipo){
+    const campos = camposPorTipo[tipo] || [];
+    const valores = {};
+    campos.forEach(c=>{
+      const el = document.getElementById('f_'+c.id);
+      valores[c.id] = el ? (el.value || `[${c.label} no especificado]`) : '';
+    });
+    return valores;
+  }
+
+  const titulos = {
+    apercibimiento:'Apercibimiento',
+    suspension:'Suspensión',
+    carta:'Carta documento',
+    descripcion:'Descripción de puesto',
+    contrato:'Contrato de trabajo',
+    confidencialidad:'Acuerdo de confidencialidad',
+    notificacion:'Notificación general',
+    acta:'Acta',
+    evaluacion:'Evaluación de desempeño'
+  };
+
+  const usaIA = { apercibimiento:true, suspension:true };
+
+  document.querySelectorAll('.doc-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+      document.querySelectorAll('.doc-item').forEach(i=>i.classList.remove('selected'));
+      item.classList.add('selected');
+      const tipo = item.dataset.doc;
+      document.getElementById('formTitle').innerText = titulos[tipo];
+      renderCampos(tipo);
+      document.getElementById('preview').classList.remove('show');
+      document.getElementById('previewActions').style.display='none';
+    });
+  });
+  renderCampos('apercibimiento');
+
+  async function generarDoc(){
+    const tipo = document.querySelector('.doc-item.selected').dataset.doc;
+    const v = leerCampos(tipo);
+    const preview = document.getElementById('preview');
+    const previewActions = document.getElementById('previewActions');
+
+    if(usaIA[tipo]){
+      preview.innerText = 'Generando con IA, citando la normativa aplicable...';
+      preview.classList.add('show');
+      previewActions.style.display = 'none';
+
+      const baseTexto = leyes.map(l=>`### ${l.titulo}\n${l.texto}`).join('\n\n') || 'Sin normas cargadas.';
+      const tipoTexto = tipo === 'apercibimiento' ? 'un apercibimiento (sanción disciplinaria)' : 'una suspensión disciplinaria';
+      const consulta = `Redactá ${tipoTexto} formal y profesional para un empleado, actuando como especialista en RRHH, con estos datos:\n${JSON.stringify(v, null, 2)}\n\nCitá el artículo específico de la LCT y, si corresponde, del convenio colectivo indicado, que sea relevante para este motivo y este tipo de sanción. Si no encontrás un artículo específico en la base legal para este motivo, decilo y aplicá el criterio general de sanciones disciplinarias (Art. 67 LCT). Tené en cuenta los antecedentes disciplinarios si los hay. Formato: documento formal, con fecha, datos del empleado, cuerpo del texto, cita legal, y espacio para firma.`;
+
+      try{
+        const texto = await llamarAsistenteIA(baseTexto, consulta);
+        preview.innerText = texto;
+        previewActions.style.display = 'flex';
+        if(db){
+          db.from('documentos_generados').insert([{ tipo, nombre_empleado: v.nombre, puesto: v.puesto, contenido: texto, user_id: empresaSesion ? empresaSesion.id : null }])
+            .then(({error})=>{ if(error) console.error(error); });
+        }
+      }catch(err){
+        preview.innerText = 'Error al generar con IA. Intentá de nuevo.';
+        console.error(err);
+      }
+      return;
+    }
+
+    let texto = '';
+    if(tipo==='carta'){
+      texto = `CARTA DOCUMENTO\n\nFecha: ${v.fecha}\nDestinatario: ${v.nombre}\nDomicilio: ${v.domicilio}\nTipo: ${v.tipoCarta}\n\nPor la presente notificamos:\n\n${v.hecho}\n\nQuedando a su disposición para cualquier aclaración al respecto.\n\nAtentamente.`;
+    } else if(tipo==='descripcion'){
+      texto = `DESCRIPCIÓN DE PUESTO\n\nPuesto: ${v.puesto}\nÁrea: ${v.area}\nReporta a: ${v.reportaA}\n\nObjetivo del puesto:\n${v.objetivo}\n\nResponsabilidades principales:\n${v.responsabilidades}\n\nFormación requerida: ${v.formacion}\nExperiencia requerida: ${v.experiencia}\n\nCompetencias clave:\n${v.competencias}`;
+    } else if(tipo==='contrato'){
+      texto = `CONTRATO DE TRABAJO\n\nFecha de inicio: ${v.fechaInicio}\n\nEntre la empresa [Razón social] y ${v.nombre}, DNI ${v.dni}, domiciliado en ${v.domicilio}, se acuerda:\n\nPuesto / Categoría: ${v.puesto}\nConvenio aplicable: ${v.convenio || 'Ninguno (LCT general)'}\nTipo de contrato: ${v.tipoContrato}\nJornada: ${v.jornada}\nRemuneración: ${v.sueldo}\nLugar de trabajo: ${v.lugarTrabajo}\n\nAmbas partes se someten a la Ley de Contrato de Trabajo (20.744) y al convenio colectivo aplicable.\n\nFirma empleador: ____________________\nFirma empleado: ____________________`;
+    } else if(tipo==='confidencialidad'){
+      texto = `ACUERDO DE CONFIDENCIALIDAD\n\nFecha: ${v.fecha}\n\nEntre la empresa y ${v.nombre}, en su carácter de ${v.puesto}, se acuerda:\n\n1. Información considerada confidencial:\n${v.alcance}\n\n2. Duración del acuerdo: ${v.duracion}\n\n3. Penalidad por incumplimiento:\n${v.penalidad}\n\nFirma: ____________________`;
+    } else if(tipo==='notificacion'){
+      texto = `NOTIFICACIÓN\n\nFecha: ${v.fecha}\nDestinatario: ${v.nombre}\nPuesto: ${v.puesto}\nAsunto: ${v.asunto}\n\nPor medio de la presente se notifica:\n\n${v.hecho}\n\nFirma: ____________________`;
+    } else if(tipo==='acta'){
+      texto = `ACTA\n\nFecha: ${v.fecha}\nLugar: ${v.lugar}\n\nEn el día de la fecha se deja constancia de lo siguiente respecto de ${v.nombre} (${v.puesto}):\n\n${v.hecho}\n\nTestigos / presentes: ${v.asistentes}\n\nAcuerdos / Conclusión:\n${v.conclusion}\n\nFirmas: ____________________`;
+    } else if(tipo==='evaluacion'){
+      texto = `EVALUACIÓN DE DESEMPEÑO\n\nEmpleado: ${v.nombre}\nPuesto: ${v.puesto}\nPeríodo evaluado: ${v.periodo}\nEvaluador: ${v.evaluador}\nFecha: ${v.fecha}\n\nObservaciones generales:\n${v.observaciones}\n\nFortalezas destacadas:\n${v.fortalezas}\n\nÁreas de mejora:\n${v.areasMejora}\n\nCalificación general: ${v.calificacion}\n\nObjetivos para el próximo período:\n${v.objetivos}\n\nFirma evaluador: ____________________`;
+    }
+
+    const previewEl = document.getElementById('preview');
+    previewEl.innerText = texto;
+    previewEl.classList.add('show');
+    document.getElementById('previewActions').style.display='flex';
+
+    if(db){
+      db.from('documentos_generados').insert([{
+        tipo, nombre_empleado: v.nombre, puesto: v.puesto, contenido: texto, user_id: empresaSesion ? empresaSesion.id : null
+      }]).then(({error})=>{ if(error) console.error(error); });
+    }
+  }
+
+  function exportarPDF(){
+    const texto = document.getElementById('preview').innerText;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFont('helvetica');
+    doc.setFontSize(11);
+    const lineas = doc.splitTextToSize(texto, 180);
+    doc.text(lineas, 15, 20);
+    doc.save('documento-humanitariahr.pdf');
+  }
+
+  function exportarWord(){
+    const texto = document.getElementById('preview').innerText;
+    const html = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><title>Documento</title></head>
+      <body style="font-family:Calibri, sans-serif; font-size:12pt; white-space:pre-wrap;">${texto.replace(/\n/g,'<br>')}</body>
+      </html>`;
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'documento-humanitariahr.doc';
+    link.click();
+  }
+
+  async function cargarHistorial(){
+    const cont = document.getElementById('historialLista');
+    if(!db){ cont.innerText = 'Base de datos no conectada.'; return; }
+    const { data, error } = await db.from('documentos_generados')
+      .select('tipo, nombre_empleado, puesto, contenido, creado_en')
+      .order('creado_en', { ascending: false });
+    if(error){ cont.innerText = 'Error al cargar historial: '+error.message; return; }
+    if(!data || data.length===0){ cont.innerText = 'Todavía no se generaron documentos.'; return; }
+
+    cont.innerHTML = data.map(d => `
+      <div style="border:1px solid var(--borde);border-radius:10px;padding:14px;margin-bottom:10px;">
+        <strong>${titulos[d.tipo] || d.tipo}</strong>
+        <div style="font-size:.82rem;color:var(--gris);margin:4px 0;">
+          ${d.nombre_empleado || '-'} · ${d.puesto || '-'} · ${new Date(d.creado_en).toLocaleString('es-AR')}
+        </div>
+        <details><summary style="cursor:pointer;font-size:.82rem;color:var(--azul-claro);">Ver contenido</summary>
+          <pre style="white-space:pre-wrap;font-size:.82rem;margin-top:8px;">${d.contenido}</pre>
+        </details>
+      </div>
+    `).join('');
+  }
+  async function cargarSidebar(elId, categoriasPreferidas){
+    const cont = document.getElementById(elId);
+    if(!cont) return;
+    if(!db){ cont.innerHTML = ''; return; }
+    if(proveedoresData.length === 0){
+      const { data } = await db.from('proveedores').select('*');
+      proveedoresData = data || [];
+    }
+    let candidatos = proveedoresData.filter(p => categoriasPreferidas.includes(p.categoria));
+    if(candidatos.length === 0) candidatos = proveedoresData; // si no hay de esas categorías, mostramos cualquiera
+    const elegidos = candidatos.slice(0, 4);
+
+    if(elegidos.length === 0){
+      cont.innerHTML = '<div class="sidebar-label">Proveedores recomendados</div>';
+      return;
+    }
+    cont.innerHTML = '<div class="sidebar-label">Proveedores recomendados</div><div style="font-size:.64rem;color:var(--gris);margin-bottom:4px;">Espacio publicitario</div>' + elegidos.map(p => `
+      <div class="prov-mini">
+        ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}">` : ''}
+        <div class="prov-mini-body">
+          <div class="cat-mini">${p.categoria}</div>
+          <h5>${p.nombre}</h5>
+          <button onclick="solicitarPresupuesto('${p.whatsapp||''}','${p.nombre.replace(/'/g,"")}')">Contactar</button>
+        </div>
+      </div>
+    `).join('');
+  }
+  let proveedoresData = [];
+  cargarSidebar('sidebar-chat', ['Consultoras','Capacitadores','Psicólogos laborales']);
+
+  // Proveedores
+
+  function toggleFormProveedor(){
+    const f = document.getElementById('formProveedor');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  }
+
+  async function cargarProveedor(){
+    const nombre = document.getElementById('p_nombre').value.trim();
+    const categoria = document.getElementById('p_categoria').value;
+    const descripcion = document.getElementById('p_descripcion').value.trim();
+    const whatsapp = document.getElementById('p_whatsapp').value.trim();
+    const ubicacion = document.getElementById('p_ubicacion').value.trim();
+    const imagen = document.getElementById('p_imagen').value.trim();
+    const imagen2 = document.getElementById('p_imagen2').value.trim();
+    const imagen3 = document.getElementById('p_imagen3').value.trim();
+    if(!nombre){ alert('Completá al menos el nombre de la empresa.'); return; }
+
+    if(db){
+      const { error } = await db.from('proveedores').insert([{ nombre, categoria, descripcion, whatsapp, ubicacion, imagen, imagen2, imagen3, plan:'gratis' }]);
+      if(error){ alert('Error al publicar: '+error.message); console.error(error); return; }
+    }
+    document.getElementById('formProveedor').style.display = 'none';
+    document.getElementById('p_nombre').value='';
+    document.getElementById('p_descripcion').value='';
+    document.getElementById('p_whatsapp').value='';
+    document.getElementById('p_ubicacion').value='';
+    document.getElementById('p_imagen').value='';
+    document.getElementById('p_imagen2').value='';
+    document.getElementById('p_imagen3').value='';
+    cargarProveedores();
+  }
+
+  async function cargarProveedores(){
+    const cont = document.getElementById('listaProveedores');
+    if(!db){ cont.innerText = 'Base de datos no conectada.'; return; }
+    const { data, error } = await db.from('proveedores').select('*').order('creado_en', { ascending:false });
+    if(error){ cont.innerText = 'Error al cargar proveedores: '+error.message; return; }
+    proveedoresData = data || [];
+    renderProveedores(proveedoresData);
+  }
+
+  function renderProveedores(lista){
+    const cont = document.getElementById('listaProveedores');
+    if(lista.length === 0){
+      cont.innerHTML = '<p style="color:var(--gris);">Todavía no hay proveedores en esta categoría. ¡Sé el primero en publicarte!</p>';
+      return;
+    }
+    cont.innerHTML = lista.map(p => {
+      const imgs = [p.imagen, p.imagen2, p.imagen3].filter(Boolean);
+      const galeria = imgs.length > 0
+        ? `<div style="display:flex;gap:4px;margin-bottom:8px;">${imgs.map(img=>`<img src="${img}" style="width:33.33%;height:70px;object-fit:cover;border-radius:6px;background:var(--gris-claro);">`).join('')}</div>`
+        : '';
+      return `
+      <div class="prov-card">
+        ${galeria}
+        <span class="cat">${p.categoria}</span>
+        <h4>${p.nombre}</h4>
+        <p>${p.descripcion || 'Sin descripción.'}</p>
+        <div class="ubicacion">📍 ${p.ubicacion || 'No especificada'}</div>
+        <button class="btn-presupuesto" onclick="solicitarPresupuesto('${p.whatsapp||''}','${p.nombre.replace(/'/g,"")}')">Solicitar presupuesto</button>
+      </div>
+    `;
+    }).join('');
+  }
+
+  function filtrarProveedores(categoria){
+    if(!categoria){ renderProveedores(proveedoresData); return; }
+    renderProveedores(proveedoresData.filter(p => p.categoria === categoria));
+  }
+
+  function solicitarPresupuesto(whatsapp, nombre){
+    if(!whatsapp){ alert('Este proveedor todavía no cargó un WhatsApp de contacto.'); return; }
+    const msg = encodeURIComponent(`Hola ${nombre}, te contacto desde HumanitariaHR para solicitar un presupuesto.`);
+    window.open(`https://wa.me/${whatsapp}?text=${msg}`, '_blank');
+  }
+
+  // Admin
+  let adminLogueado = false;
+
+  async function verificarAdmin(){
+    const email = document.getElementById('admin_email').value.trim();
+    const password = document.getElementById('admin_clave').value;
+    const errorEl = document.getElementById('adminLoginError');
+    errorEl.innerText = '';
+
+    if(!db){ errorEl.innerText = 'Base de datos no conectada.'; return; }
+
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if(error){
+      errorEl.innerText = 'Email o contraseña incorrectos.';
+      console.error(error);
+      return;
+    }
+
+    adminLogueado = true;
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    cargarAdminProveedores();
+  }
+
+  async function cerrarSesionAdmin(){
+    if(db) await db.auth.signOut();
+    adminLogueado = false;
+    document.getElementById('adminLogin').style.display = 'block';
+    document.getElementById('adminPanel').style.display = 'none';
+  }
+
+  // Si ya había una sesión activa (recargó la página), la recuperamos
+  async function revisarSesionAdmin(){
+    if(!db) return;
+    const { data } = await db.auth.getSession();
+    if(data && data.session){
+      adminLogueado = true;
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+    }
+  }
+  revisarSesionAdmin();
+
+  async function cargarAdminProveedores(){
+    const cont = document.getElementById('listaAdminProveedores');
+    if(!db){ cont.innerText = 'Base de datos no conectada.'; return; }
+    const { data, error } = await db.from('proveedores').select('*').order('creado_en', { ascending:false });
+    if(error){ cont.innerText = 'Error: '+error.message; return; }
+
+    if(!data || data.length===0){ cont.innerText = 'No hay proveedores cargados.'; return; }
+
+    cont.innerHTML = data.map(p => `
+      <div style="border:1px solid var(--borde);border-radius:10px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong>${p.nombre}</strong>
+          <span style="font-size:.78rem;color:${p.activo===false ? '#c0392b' : 'var(--verde)'};">${p.activo===false ? '● Inactivo' : '● Activo'}</span>
+        </div>
+        <div style="font-size:.82rem;color:var(--gris);margin:4px 0;">${p.categoria} · ${p.ubicacion || 'Sin ubicación'} · WhatsApp: ${p.whatsapp || 'No cargó'}</div>
+
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+          <label style="font-size:.8rem;">Plan:
+            <select onchange="actualizarProveedorAdmin('${p.id}','plan',this.value)" style="margin-left:4px;">
+              <option value="gratis" ${p.plan==='gratis'?'selected':''}>Gratis</option>
+              <option value="destacado" ${p.plan==='destacado'?'selected':''}>Destacado ($10.000/mes)</option>
+              <option value="premium" ${p.plan==='premium'?'selected':''}>Premium ($20.000/mes)</option>
+            </select>
+          </label>
+
+          <label style="font-size:.8rem;">Vence gratis:
+            <input type="date" value="${p.vence_gratis || ''}" onchange="actualizarProveedorAdmin('${p.id}','vence_gratis',this.value)" style="margin-left:4px;">
+          </label>
+
+          <button onclick="actualizarProveedorAdmin('${p.id}','activo',${p.activo===false})" style="background:${p.activo===false ? 'var(--verde)' : '#fdeaea'};color:${p.activo===false ? 'white' : '#c0392b'};border:none;border-radius:6px;padding:6px 12px;font-size:.78rem;cursor:pointer;">
+            ${p.activo===false ? 'Activar' : 'Desactivar'}
+          </button>
+
+          <button onclick="solicitarPresupuesto('${p.whatsapp||''}','${p.nombre.replace(/'/g,"")}')" style="background:var(--azul);color:white;border:none;border-radius:6px;padding:6px 12px;font-size:.78rem;cursor:pointer;">
+            Contactar
+          </button>
+
+          <button onclick="eliminarProveedorAdmin('${p.id}')" style="background:#fdeaea;color:#c0392b;border:none;border-radius:6px;padding:6px 12px;font-size:.78rem;cursor:pointer;">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function actualizarProveedorAdmin(id, campo, valor){
+    if(!db) return;
+    const update = {};
+    update[campo] = valor === 'true' ? true : (valor === 'false' ? false : valor);
+    const { error } = await db.from('proveedores').update(update).eq('id', id);
+    if(error){ alert('Error al actualizar: '+error.message); return; }
+    cargarAdminProveedores();
+  }
+
+  async function eliminarProveedorAdmin(id){
+    if(!confirm('¿Eliminar este proveedor definitivamente?')) return;
+    if(!db) return;
+    const { error } = await db.from('proveedores').delete().eq('id', id);
+    if(error){ alert('Error al eliminar: '+error.message); return; }
+    cargarAdminProveedores();
+  }
+
+  // Mi Perfil (panel autogestionable del proveedor)
+  let proveedorLogueado = null; // guarda el registro propio del proveedor, si existe
+
+  async function proveedorRegistrar(){
+    const email = document.getElementById('prov_email').value.trim();
+    const password = document.getElementById('prov_password').value;
+    const errorEl = document.getElementById('provLoginError');
+    errorEl.innerText = '';
+    if(!db){ errorEl.innerText = 'Base de datos no conectada.'; return; }
+    if(password.length < 6){ errorEl.innerText = 'La contraseña debe tener al menos 6 caracteres.'; return; }
+
+    const { data, error } = await db.auth.signUp({ email, password });
+    if(error){ errorEl.innerText = 'Error al registrarse: '+error.message; return; }
+    errorEl.style.color = 'var(--verde)';
+    errorEl.innerText = 'Cuenta creada. Si tu proyecto pide confirmación por email, revisá tu casilla; si no, ya podés ingresar.';
+  }
+
+  async function proveedorIngresar(){
+    const email = document.getElementById('prov_email').value.trim();
+    const password = document.getElementById('prov_password').value;
+    const errorEl = document.getElementById('provLoginError');
+    errorEl.innerText = '';
+    if(!db){ errorEl.innerText = 'Base de datos no conectada.'; return; }
+
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if(error){ errorEl.innerText = 'Email o contraseña incorrectos.'; return; }
+    await mostrarPanelProveedor();
+  }
+
+  async function proveedorCerrarSesion(){
+    if(db) await db.auth.signOut();
+    proveedorLogueado = null;
+    document.getElementById('provLoginBox').style.display = 'block';
+    document.getElementById('provPerfilBox').style.display = 'none';
+  }
+
+  async function revisarSesionProveedor(){
+    if(!db) return;
+    const { data } = await db.auth.getSession();
+    if(data && data.session){
+      await mostrarPanelProveedor();
+    }
+  }
+
+  async function mostrarPanelProveedor(){
+    document.getElementById('provLoginBox').style.display = 'none';
+    document.getElementById('provPerfilBox').style.display = 'block';
+
+    const { data: userData } = await db.auth.getUser();
+    const uid = userData.user.id;
+    const { data: perfil } = await db.from('proveedores').select('*').eq('user_id', uid).maybeSingle();
+
+    proveedorLogueado = perfil || null;
+    if(perfil){
+      document.getElementById('mp_nombre').value = perfil.nombre || '';
+      document.getElementById('mp_categoria').value = perfil.categoria || 'Catering';
+      document.getElementById('mp_descripcion').value = perfil.descripcion || '';
+      document.getElementById('mp_whatsapp').value = perfil.whatsapp || '';
+      document.getElementById('mp_ubicacion').value = perfil.ubicacion || '';
+      document.getElementById('mp_imagen').value = perfil.imagen || '';
+      document.getElementById('mp_imagen2').value = perfil.imagen2 || '';
+      document.getElementById('mp_imagen3').value = perfil.imagen3 || '';
+    }
+  }
+
+  async function proveedorGuardarPerfil(){
+    const msgEl = document.getElementById('provGuardadoMsg');
+    msgEl.innerText = 'Guardando...';
+
+    const { data: userData } = await db.auth.getUser();
+    const uid = userData.user.id;
+
+    const valores = {
+      nombre: document.getElementById('mp_nombre').value.trim(),
+      categoria: document.getElementById('mp_categoria').value,
+      descripcion: document.getElementById('mp_descripcion').value.trim(),
+      whatsapp: document.getElementById('mp_whatsapp').value.trim(),
+      ubicacion: document.getElementById('mp_ubicacion').value.trim(),
+      imagen: document.getElementById('mp_imagen').value.trim(),
+      imagen2: document.getElementById('mp_imagen2').value.trim(),
+      imagen3: document.getElementById('mp_imagen3').value.trim(),
+      user_id: uid
+    };
+
+    let error;
+    if(proveedorLogueado){
+      const r = await db.from('proveedores').update(valores).eq('id', proveedorLogueado.id);
+      error = r.error;
+    } else {
+      const r = await db.from('proveedores').insert([{ ...valores, plan:'gratis' }]).select().maybeSingle();
+      error = r.error;
+      if(!error) proveedorLogueado = r.data;
+    }
+
+    msgEl.style.color = error ? '#c0392b' : 'var(--verde)';
+    msgEl.innerText = error ? ('Error: '+error.message) : 'Perfil guardado correctamente.';
+  }
+
+  function prepararManual(){
+    document.getElementById('ley_titulo').value = 'Manual de Políticas Internas';
+    document.getElementById('ley_texto').focus();
+  }
+
+  let leyes = [];
+  async function cargarLey(){
+    const titulo = document.getElementById('ley_titulo').value.trim();
+    const texto = document.getElementById('ley_texto').value.trim();
+    if(!titulo || !texto){ alert('Completá título y texto.'); return; }
+
+    if(db){
+      const { error } = await db.from('leyes').insert([{ titulo, texto, user_id: empresaSesion ? empresaSesion.id : null }]);
+      if(error){ alert('Error guardando en Supabase: '+error.message); console.error(error); }
+    }
+    document.getElementById('ley_titulo').value='';
+    document.getElementById('ley_texto').value='';
+    cargarLeyesDesdeSupabase();
+  }
+  async function cargarLeyesDesdeSupabase(){
+    if(!db) return;
+    const { data, error } = await db.from('leyes').select('id, titulo, texto');
+    if(!error && data){
+      leyes = data;
+      renderLeyes();
+    }
+  }
+  function renderLeyes(){
+    const cont = document.getElementById('leyLista');
+    if(leyes.length===0){
+      cont.innerText = 'Todavía no cargaste ninguna norma.';
+      return;
+    }
+    cont.innerHTML = leyes.map((l,i)=>`
+      <div style="padding:8px 0;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;align-items:center;">
+        <strong>${l.titulo}</strong>
+        <button onclick="borrarLey(${i})" style="background:#fdeaea;color:#c0392b;border:none;border-radius:6px;padding:4px 10px;font-size:.78rem;cursor:pointer;">Borrar</button>
+      </div>
+    `).join('');
+  }
+
+  async function borrarLey(index){
+    const ley = leyes[index];
+    if(!confirm('¿Borrar "'+ley.titulo+'"?')) return;
+
+    if(db){
+      const { error } = await db.from('leyes').delete().eq('id', ley.id);
+      if(error){ alert('Error al borrar: '+error.message); console.error(error); return; }
+    }
+    leyes.splice(index,1);
+    renderLeyes();
+  }
+</script>
+</body>
+</html>
