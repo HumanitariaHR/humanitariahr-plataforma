@@ -26,7 +26,13 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    const texto = (data.content || []).map(c => c.text || "").join("\n");
+
+    if (!data.content) {
+      console.error("Respuesta de Anthropic sin contenido:", JSON.stringify(data));
+      return res.status(200).json({ texto: "Error de la IA: " + (data.error ? data.error.message : JSON.stringify(data)) });
+    }
+
+    const texto = data.content.map(c => c.text || "").join("\n");
 
     return res.status(200).json({ texto });
   } catch (err) {
