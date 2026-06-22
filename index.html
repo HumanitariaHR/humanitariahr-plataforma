@@ -405,6 +405,9 @@
           <div class="field"><label>Imagen 3</label><input id="mp_imagen3" placeholder="https://..."></div>
           <button class="btn-gen" onclick="proveedorGuardarPerfil()">Guardar cambios</button>
           <p id="provGuardadoMsg" style="color:var(--verde);font-size:.82rem;margin-top:8px;"></p>
+          <hr style="margin:18px 0;border:none;border-top:1px solid var(--borde);">
+          <p style="font-size:.84rem;color:#444;">¿Querés aparecer destacado o premium en el marketplace?</p>
+          <button class="btn-gen" style="background:#7a3fc4;" onclick="solicitarUpgrade()">💳 Quiero un plan pago</button>
         </div>
       </div>
     </section>
@@ -1242,6 +1245,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <strong>${p.nombre}</strong>
           <span style="font-size:.78rem;color:${p.activo===false ? '#c0392b' : 'var(--verde)'};">${p.activo===false ? '● Inactivo' : '● Activo'}</span>
+          ${p.solicito_upgrade ? '<span style="background:#7a3fc4;color:white;font-size:.72rem;padding:2px 8px;border-radius:10px;margin-left:8px;">💳 Pidió upgrade</span>' : ''}
         </div>
         <div style="font-size:.82rem;color:var(--gris);margin:4px 0;">${p.categoria} · ${p.ubicacion || 'Sin ubicación'} · WhatsApp: ${p.whatsapp || 'No cargó'}</div>
 
@@ -1354,6 +1358,20 @@
       document.getElementById('mp_imagen2').value = perfil.imagen2 || '';
       document.getElementById('mp_imagen3').value = perfil.imagen3 || '';
     }
+  }
+
+  const WHATSAPP_ADMIN = "5490000000000"; // ⚠️ Reemplazá por tu número real (código país + área + número, sin espacios ni +)
+
+  async function solicitarUpgrade(){
+    if(!proveedorLogueado){
+      alert('Primero guardá tu perfil al menos una vez.');
+      return;
+    }
+    if(db){
+      await db.from('proveedores').update({ solicito_upgrade: true }).eq('id', proveedorLogueado.id);
+    }
+    const msg = encodeURIComponent(`Hola, soy ${proveedorLogueado.nombre || 'un proveedor'} de HumanitariaHR. Quiero info para pasar a un plan Destacado o Premium.`);
+    window.open(`https://wa.me/${WHATSAPP_ADMIN}?text=${msg}`, '_blank');
   }
 
   async function proveedorGuardarPerfil(){
